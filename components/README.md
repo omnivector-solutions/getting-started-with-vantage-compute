@@ -1,4 +1,7 @@
 # Vantage Compute Components
+<!--
+Author: Vantage Compute <info@vantagecompute.ai>
+-->
 The Vantage platform consists of multiple python apis and clis that enable its functionality. These services can be deployed with or without the Vantage platform.
 
 ## Jobbergate
@@ -51,6 +54,9 @@ This is a Python package containing shared logic and utilities for both the CLI 
 ```bash
 python3 -m venv venv
 pip install jobbergate-core
+
+
+
 ```
 
 ---
@@ -72,6 +78,49 @@ The [license-manager](https://github.com/omnivector-solutions/license-manager) i
 The API provides endpoints for managing software licenses, tracking usage, and integrating with Slurm job scheduling.
 
 - API Documentation: [https://apis.vantagecompute.ai/lm/docs](https://apis.vantagecompute.ai/lm/docs)
+
+```bash
+python3 -m venv venv
+pip install jobbergate-core
+```
+
+```python
+import json
+from os import getenv
+from pathlib import Path
+
+import requests
+from jobbergate_core import JobbergateAuthHandler
+
+jobbergate_auth = JobbergateAuthHandler(
+    # Access credentials interchangeable with jobbergate-cli
+    # as long as they are stored in the same location
+    cache_directory=Path(getenv("JOBBERGATE_CACHE_DIR", Path.home() / ".local/share/jobbergate3")).expanduser() / "token",
+    login_domain="https://" + getenv("OIDC_DOMAIN", "auth.vantagecompute.ai/realms/vantage"),
+)
+JOBBERGATE_BASE_URL = getenv("ARMADA_API_BASE", "https://apis.vantagecompute.ai")
+
+data = dict(
+    job_script_id=212948,
+    name="scripted-submission",
+    description="some-description",
+    execution_directory="/home/user/working-directory",
+    client_id="penny",
+)
+
+response = requests.post(
+    url=f"{JOBBERGATE_BASE_URL}/jobbergate/job-submissions",
+    auth=jobbergate_auth,
+    json=data,
+)
+
+response.raise_for_status()
+submission_data = response.json()
+
+print(json.dumps(submission_data, indent=4))
+```
+
+
 
 ---
 
